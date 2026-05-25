@@ -7,7 +7,7 @@ import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:saber/components/canvas/pencil_shader.dart';
 import 'package:saber/components/home/syncing_button.dart';
 import 'package:saber/components/settings/app_info.dart';
-import 'package:saber/components/settings/nextcloud_profile.dart';
+import 'package:saber/components/settings/cloud_profile.dart';
 import 'package:saber/components/theming/saber_theme.dart';
 import 'package:saber/data/file_manager/file_manager.dart';
 import 'package:saber/data/flavor_config.dart';
@@ -168,8 +168,8 @@ void _screenshot({
         await tester.runAsync(() => LocaleSettings.setLocaleRaw(localeCode));
 
         if (goldenFileName == '4_settings') {
-          NextcloudProfile.forceLoginStep = .done;
-          addTearDown(() => NextcloudProfile.forceLoginStep = null);
+          CloudProfile.forceLoginStep = .done;
+          addTearDown(() => CloudProfile.forceLoginStep = null);
         }
 
         var theme = switch (device.platform) {

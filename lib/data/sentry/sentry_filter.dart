@@ -41,6 +41,11 @@ abstract class SentryFilter {
   static Set<String> getSecrets() => _previousSecrets
     ..add(stows.username.value)
     ..add(stows.ncPassword.value)
+    ..add(stows.googleDriveClientId.value)
+    ..add(stows.googleDriveClientSecret.value)
+    ..add(stows.googleDriveAccessToken.value)
+    ..add(stows.googleDriveRefreshToken.value)
+    ..add(stows.googleDriveFolderId.value)
     ..add(stows.encPassword.value)
     ..add(stows.key.value)
     ..add(stows.iv.value);

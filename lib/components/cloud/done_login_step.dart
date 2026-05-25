@@ -3,11 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
-import 'package:saber/components/misc/faq.dart';
 import 'package:saber/data/extensions/quota_extension.dart';
-import 'package:saber/data/extensions/string_extensions.dart';
-import 'package:saber/data/nextcloud/nextcloud_client_extension.dart';
-import 'package:saber/data/nextcloud/readable_bytes.dart';
+import 'package:saber/data/google_drive/readable_bytes.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,6 +22,12 @@ class DoneLoginStep extends StatelessWidget {
     stows.url.value = '';
     stows.username.value = '';
     stows.ncPassword.value = '';
+    stows.googleDriveClientId.value = '';
+    stows.googleDriveClientSecret.value = '';
+    stows.googleDriveAccessToken.value = '';
+    stows.googleDriveRefreshToken.value = '';
+    stows.googleDriveAccessTokenExpiry.value = '';
+    stows.googleDriveFolderId.value = '';
     stows.encPassword.value = '';
     stows.pfp.value = null;
     stows.lastStorageQuota.value = null;
@@ -39,11 +42,8 @@ class DoneLoginStep extends StatelessWidget {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final quota = stows.lastStorageQuota.value;
-    final serverName =
-        stows.url.value.ifNotEmpty ?? t.login.ncLoginStep.saberNcServer;
-    late final serverUri = stows.url.value.isEmpty
-        ? NextcloudClientExtension.defaultNextcloudUri
-        : Uri.parse(stows.url.value);
+    const serverName = 'Google Drive';
+    final serverUri = Uri.parse('https://drive.google.com');
     return ListView(
       padding: .symmetric(
         horizontal: screenWidth > width ? (screenWidth - width) / 2 : 16,
@@ -115,20 +115,16 @@ class DoneLoginStep extends StatelessWidget {
               fit: FlexFit.tight,
               child: ElevatedButton(
                 onPressed: () {
-                  final url = '$serverUri/index.php/settings/user/drop_account';
+                  final url = Uri.parse(
+                    'https://myaccount.google.com/permissions',
+                  );
                   log.info('Opening URL: $url');
-                  launchUrl(Uri.parse(url));
+                  launchUrl(url);
                 },
                 child: Text(t.profile.quickLinks.deleteAccount),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 32),
-        Text(t.profile.faqTitle, style: textTheme.headlineSmall),
-        FaqListView(
-          shrinkWrap: true,
-          items: [for (final item in t.profile.faq) FaqItem(item.q, item.a)],
         ),
       ],
     );

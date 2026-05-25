@@ -18,8 +18,7 @@ import 'package:saber/components/canvas/pencil_shader.dart';
 import 'package:saber/components/theming/dynamic_material_app.dart';
 import 'package:saber/data/file_manager/file_manager.dart';
 import 'package:saber/data/flavor_config.dart';
-import 'package:saber/data/nextcloud/nc_http_overrides.dart';
-import 'package:saber/data/nextcloud/saber_syncer.dart';
+import 'package:saber/data/google_drive/saber_syncer.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/data/routes.dart';
 import 'package:saber/data/sentry/sentry_init.dart';
@@ -89,8 +88,6 @@ Future<void> appRunner(List<String> args) async {
       windowManager.ensureInitialized(),
     workerManager.init(),
     stows.locale.waitUntilRead(),
-    stows.url.waitUntilRead(),
-    stows.allowInsecureConnections.waitUntilRead(),
     PencilShader.init(),
     Printing.info().then((info) {
       Editor.canRasterPdf = info.canRaster;
@@ -115,7 +112,6 @@ Future<void> appRunner(List<String> args) async {
     }
   });
 
-  HttpOverrides.global = NcHttpOverrides();
   runApp(SentryWidget(child: TranslationProvider(child: const App())));
   startSyncAfterLoaded();
   setupBackgroundSync();
@@ -123,13 +119,22 @@ Future<void> appRunner(List<String> args) async {
 
 void startSyncAfterLoaded() async {
   await stows.username.waitUntilRead();
+  await stows.googleDriveRefreshToken.waitUntilRead();
+  await stows.googleDriveAccessToken.waitUntilRead();
+  await stows.googleDriveAccessTokenExpiry.waitUntilRead();
   await stows.encPassword.waitUntilRead();
 
   stows.username.removeListener(startSyncAfterLoaded);
+  stows.googleDriveRefreshToken.removeListener(startSyncAfterLoaded);
+  stows.googleDriveAccessToken.removeListener(startSyncAfterLoaded);
+  stows.googleDriveAccessTokenExpiry.removeListener(startSyncAfterLoaded);
   stows.encPassword.removeListener(startSyncAfterLoaded);
   if (!stows.loggedIn) {
     // try again when logged in
     stows.username.addListener(startSyncAfterLoaded);
+    stows.googleDriveRefreshToken.addListener(startSyncAfterLoaded);
+    stows.googleDriveAccessToken.addListener(startSyncAfterLoaded);
+    stows.googleDriveAccessTokenExpiry.addListener(startSyncAfterLoaded);
     stows.encPassword.addListener(startSyncAfterLoaded);
     return;
   }
@@ -198,8 +203,12 @@ void doBackgroundSync() {
     await Future.wait([
       FileManager.init(),
       workerManager.init(),
-      stows.url.waitUntilRead(),
-      stows.allowInsecureConnections.waitUntilRead(),
+      stows.username.waitUntilRead(),
+      stows.encPassword.waitUntilRead(),
+      stows.googleDriveClientId.waitUntilRead(),
+      stows.googleDriveRefreshToken.waitUntilRead(),
+      stows.googleDriveAccessToken.waitUntilRead(),
+      stows.googleDriveAccessTokenExpiry.waitUntilRead(),
     ]);
 
     /// Only sync a few files to avoid using too much data/battery

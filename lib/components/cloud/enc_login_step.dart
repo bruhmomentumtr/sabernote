@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
-import 'package:saber/components/misc/faq.dart';
-import 'package:saber/data/nextcloud/errors.dart';
-import 'package:saber/data/nextcloud/nextcloud_client_extension.dart';
+import 'package:saber/data/google_drive/google_drive_client.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:sbn/font_fallbacks.dart';
@@ -63,6 +61,12 @@ class EncLoginStep extends HookWidget {
                   stows.url.value = '';
                   stows.username.value = '';
                   stows.ncPassword.value = '';
+                  stows.googleDriveClientId.value = '';
+                  stows.googleDriveClientSecret.value = '';
+                  stows.googleDriveAccessToken.value = '';
+                  stows.googleDriveRefreshToken.value = '';
+                  stows.googleDriveAccessTokenExpiry.value = '';
+                  stows.googleDriveFolderId.value = '';
                   recheckCurrentStep();
                 },
             ),
@@ -122,15 +126,6 @@ class EncLoginStep extends HookWidget {
           },
           child: Text(t.common.continueBtn),
         ),
-        const SizedBox(height: 32),
-        Text(t.login.encLoginStep.encFaqTitle, style: textTheme.headlineSmall),
-        FaqListView(
-          shrinkWrap: true,
-          items: [
-            for (final item in t.login.encLoginStep.encFaq)
-              FaqItem(item.q, item.a),
-          ],
-        ),
       ],
     );
   }
@@ -144,10 +139,10 @@ class EncLoginStep extends HookWidget {
 
     try {
       stows.encPassword.value = encPassword;
-      final client = NextcloudClientExtension.withSavedDetails()!;
+      final client = GoogleDriveClient.withSavedDetails()!;
       await client.loadEncryptionKey();
       recheckCurrentStep();
-    } on EncLoginFailure {
+    } on FormatException {
       stows.encPassword.value = '';
       errorMessage.value = t.login.encLoginStep.wrongEncPassword;
     } catch (e, st) {

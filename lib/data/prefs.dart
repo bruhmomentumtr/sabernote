@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:perfect_freehand/perfect_freehand.dart';
 import 'package:saber/components/navbar/responsive_navbar.dart';
-import 'package:saber/components/settings/nextcloud_profile.dart';
+import 'package:saber/components/settings/cloud_profile.dart';
 import 'package:saber/data/codecs/base64_codec.dart';
 import 'package:saber/data/codecs/quota_codec.dart';
 import 'package:saber/data/flavor_config.dart';
@@ -55,11 +55,57 @@ class Stows {
     false,
     volatile: !_isOnMainIsolate,
   );
+
+  /// Legacy field from the old cloud login flow.
   final url = SecureStow('url', '', volatile: !_isOnMainIsolate);
+
+  /// Email of the connected cloud account.
   final username = SecureStow('username', '', volatile: !_isOnMainIsolate);
 
-  /// the password used to login to Nextcloud
+  /// Legacy field from the old cloud login flow.
   final ncPassword = SecureStow('ncPassword', '', volatile: !_isOnMainIsolate);
+
+  /// OAuth2 client id for Google Drive.
+  final googleDriveClientId = SecureStow(
+    'googleDriveClientId',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
+
+  /// OAuth2 client secret for Google Drive (optional for PKCE clients).
+  final googleDriveClientSecret = SecureStow(
+    'googleDriveClientSecret',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
+
+  /// Current short-lived OAuth2 access token.
+  final googleDriveAccessToken = SecureStow(
+    'googleDriveAccessToken',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
+
+  /// Long-lived OAuth2 refresh token.
+  final googleDriveRefreshToken = SecureStow(
+    'googleDriveRefreshToken',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
+
+  /// Expiry timestamp of the access token (UTC ISO8601).
+  final googleDriveAccessTokenExpiry = SecureStow(
+    'googleDriveAccessTokenExpiry',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
+
+  /// Root folder id in Google Drive that stores Saber files.
+  final googleDriveFolderId = SecureStow(
+    'googleDriveFolderId',
+    '',
+    volatile: !_isOnMainIsolate,
+  );
 
   /// the password used to encrypt/decrypt notes
   final encPassword = SecureStow(
@@ -72,7 +118,10 @@ class Stows {
   /// Please ensure that the relevant Prefs are loaded before using this.
   bool get loggedIn =>
       username.value.isNotEmpty &&
-      ncPassword.value.isNotEmpty &&
+      googleDriveClientId.value.isNotEmpty &&
+      googleDriveRefreshToken.value.isNotEmpty &&
+      googleDriveAccessToken.value.isNotEmpty &&
+      googleDriveAccessTokenExpiry.value.isNotEmpty &&
       encPassword.value.isNotEmpty;
 
   final key = SecureStow('key', '', volatile: !_isOnMainIsolate);
@@ -349,7 +398,7 @@ class Stows {
     volatile: !_isOnMainIsolate,
   );
 
-  /// File paths that are known to be corrupted on Nextcloud
+  /// File paths that are known to be corrupted on cloud storage
   final fileSyncCorruptFiles = PlainStow(
     'fileSyncCorruptFiles',
     <String>{},
@@ -367,7 +416,7 @@ class Stows {
     volatile: !_isOnMainIsolate,
   );
 
-  /// The last storage quota that was fetched from Nextcloud
+  /// The last storage quota that was fetched from cloud storage
   final lastStorageQuota = PlainStow<Quota?>(
     'lastStorageQuota',
     null,

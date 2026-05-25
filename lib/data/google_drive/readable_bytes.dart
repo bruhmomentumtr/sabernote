@@ -1,3 +1,6 @@
+/// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
+library;
+
 String readableBytes(num? bytes) {
   if (bytes == null) return '... B';
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
@@ -9,12 +12,10 @@ String readableBytes(num? bytes) {
     i++;
   }
   if (groupedBytes > 900 && i < units.length - 1) {
-    // e.g. 0.95 KB instead of 950 B
     groupedBytes /= 1024;
     i++;
   }
 
-  // Return 3 significant figures, except for bytes which are integers
   final int decimalPlaces;
   if (i == 0) {
     decimalPlaces = 0;

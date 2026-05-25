@@ -1,4 +1,4 @@
-import 'package:saber/components/settings/nextcloud_profile.dart';
+import 'package:saber/components/settings/cloud_profile.dart';
 import 'package:stow_codecs/stow_codecs.dart';
 
 class QuotaCodec extends AbstractCodec<Quota, List> {
@@ -16,13 +16,6 @@ class QuotaCodec extends AbstractCodec<Quota, List> {
     }
     final used = int.tryParse(encoded[0]) ?? 0;
     final total = int.tryParse(encoded[1]) ?? 0;
-    return Quota.fromJson({
-      'free': total - used,
-      'used': used,
-      'total': total,
-      'relative': used / total * 100,
-      // I don't know what this [quota] field is for, but I don't use it
-      'quota': total,
-    });
+    return Quota(limit: total, usage: used, usageInDrive: used);
   }
 }

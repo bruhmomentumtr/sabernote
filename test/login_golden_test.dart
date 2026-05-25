@@ -22,6 +22,10 @@ void main() {
       );
       stows.username.value = 'testuser';
       stows.ncPassword.value = 'testpassword';
+      stows.googleDriveClientId.value = 'client-id';
+      stows.googleDriveAccessToken.value = 'access-token';
+      stows.googleDriveRefreshToken.value = 'refresh-token';
+      stows.googleDriveAccessTokenExpiry.value = '2099-01-01T00:00:00.000Z';
       stows.encPassword.value = 'encpassword';
       stows.key.value = 'encryptionkey';
       stows.iv.value = 'encryptioniv';

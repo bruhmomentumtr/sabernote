@@ -2,22 +2,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nextcloud/provisioning_api.dart';
 import 'package:saber/components/theming/adaptive_icon.dart';
 import 'package:saber/components/theming/adaptive_linear_progress_indicator.dart';
 import 'package:saber/data/extensions/quota_extension.dart';
 import 'package:saber/data/file_manager/file_manager.dart';
-import 'package:saber/data/nextcloud/nextcloud_client_extension.dart';
-import 'package:saber/data/nextcloud/saber_syncer.dart';
+import 'package:saber/data/google_drive/google_drive_client.dart';
+import 'package:saber/data/google_drive/google_drive_models.dart';
+import 'package:saber/data/google_drive/saber_syncer.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/data/routes.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:saber/pages/user/login.dart';
 
-typedef Quota = UserDetailsQuota;
+typedef Quota = GoogleDriveQuota;
 
-class NextcloudProfile extends HookWidget {
-  const NextcloudProfile({super.key});
+class CloudProfile extends HookWidget {
+  const CloudProfile({super.key});
 
   /// If non-null, this will be used instead of the actual login state.
   @visibleForTesting
@@ -37,14 +37,14 @@ class NextcloudProfile extends HookWidget {
     final loginStep = forceLoginStep ?? NcLoginPage.getCurrentStep();
     final heading = switch (loginStep) {
       .waitingForPrefs => '',
-      .nc => t.login.status.loggedOut,
+      .nc => 'Google Drive',
       .enc || .done => t.login.status.hi(u: stows.username.value),
     };
     final subheading = switch (loginStep) {
       .waitingForPrefs => '',
-      .nc => t.login.status.tapToLogin,
-      .enc => t.login.status.almostDone,
-      .done => t.login.status.loggedIn,
+      .nc => 'Tap to sign in',
+      .enc => 'Encryption setup required',
+      .done => 'Connected to Google Drive',
     };
     const pfpSize = 48.0;
 
@@ -91,11 +91,10 @@ class NextcloudProfile extends HookWidget {
   static Future<Quota?> getStorageQuota() async {
     if (forceLoginStep != null) return stows.lastStorageQuota.value;
 
-    final client = NextcloudClientExtension.withSavedDetails();
+    final client = GoogleDriveClient.withSavedDetails();
     if (client == null) return stows.lastStorageQuota.value = null;
 
-    final user = await client.provisioningApi.users.getCurrentUser();
-    return stows.lastStorageQuota.value = user.body.ocs.data.quota;
+    return stows.lastStorageQuota.value = await client.getStorageQuota();
   }
 }
 

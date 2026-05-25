@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:saber/components/nextcloud/done_login_step.dart';
-import 'package:saber/components/nextcloud/enc_login_step.dart';
-import 'package:saber/components/nextcloud/nc_login_step.dart';
+import 'package:saber/components/cloud/done_login_step.dart';
+import 'package:saber/components/cloud/enc_login_step.dart';
+import 'package:saber/components/cloud/nc_login_step.dart';
 import 'package:saber/components/theming/adaptive_circular_progress_indicator.dart';
 import 'package:saber/components/theming/adaptive_linear_progress_indicator.dart';
 import 'package:saber/data/prefs.dart';
@@ -21,24 +21,26 @@ class NcLoginPage extends StatefulWidget {
   /// If provided, forces the current step to this value (for testing)
   final LoginStep? forceCurrentStep;
 
-  static final Uri signupUrl = Uri.parse(
-    'https://nc.saber.adil.hanney.org/index.php/apps/registration/',
-  );
-
   @override
   State<NcLoginPage> createState() => _NcLoginPageState();
 
   static LoginStep getCurrentStep() {
-    if (!stows.url.loaded ||
-        !stows.username.loaded ||
-        !stows.ncPassword.loaded ||
+    if (!stows.username.loaded ||
+        !stows.googleDriveClientId.loaded ||
+        !stows.googleDriveRefreshToken.loaded ||
+        !stows.googleDriveAccessToken.loaded ||
+        !stows.googleDriveAccessTokenExpiry.loaded ||
         !stows.encPassword.loaded ||
         !stows.key.loaded ||
         !stows.iv.loaded) {
       return .waitingForPrefs;
     }
 
-    if (stows.username.value.isEmpty || stows.ncPassword.value.isEmpty) {
+    if (stows.username.value.isEmpty ||
+        stows.googleDriveClientId.value.isEmpty ||
+        stows.googleDriveRefreshToken.value.isEmpty ||
+        stows.googleDriveAccessToken.value.isEmpty ||
+        stows.googleDriveAccessTokenExpiry.value.isEmpty) {
       return .nc;
     }
     if (stows.encPassword.value.isEmpty ||
@@ -69,16 +71,20 @@ class _NcLoginPageState extends State<NcLoginPage> {
 
     step = .waitingForPrefs;
 
-    if (!stows.url.loaded ||
-        !stows.username.loaded ||
-        !stows.ncPassword.loaded ||
+    if (!stows.username.loaded ||
+        !stows.googleDriveClientId.loaded ||
+        !stows.googleDriveRefreshToken.loaded ||
+        !stows.googleDriveAccessToken.loaded ||
+        !stows.googleDriveAccessTokenExpiry.loaded ||
         !stows.encPassword.loaded ||
         !stows.key.loaded ||
         !stows.iv.loaded)
       await Future.wait([
-        stows.url.waitUntilRead(),
         stows.username.waitUntilRead(),
-        stows.ncPassword.waitUntilRead(),
+        stows.googleDriveClientId.waitUntilRead(),
+        stows.googleDriveRefreshToken.waitUntilRead(),
+        stows.googleDriveAccessToken.waitUntilRead(),
+        stows.googleDriveAccessTokenExpiry.waitUntilRead(),
         stows.encPassword.waitUntilRead(),
         stows.key.waitUntilRead(),
         stows.iv.waitUntilRead(),
@@ -139,7 +145,7 @@ enum LoginStep {
   /// We're waiting for the Prefs to be loaded
   waitingForPrefs(0),
 
-  /// The user needs to authenticate with the Nextcloud server
+  /// The user needs to authenticate with cloud storage
   nc(0.2),
 
   /// The user needs to provide their encryption password

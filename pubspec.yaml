@@ -1,3 +1,4 @@
+# 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
 name: saber
 description: A cross-platform libre notes app
 
@@ -54,8 +55,6 @@ dependencies:
   flutter_secure_storage: ^10.0.0-beta.4
 
   url_launcher: ^6.1.8
-
-  nextcloud: ^9.0.0
 
   collapsible: ^1.0.0
 
