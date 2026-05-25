@@ -1,4 +1,6 @@
-# <img src="https://github.com/saber-notes/saber/raw/main/assets/icon/icon.png" width="30" height="30" alt="Logo"> Saber
+# <img src="https://github.com/saber-notes/saber/raw/main/assets/icon/icon.png" width="30" height="30" alt="Logo"> Saber (Fork)
+
+> **Bu fork'ta Nextcloud yapısı kaldırılmış ve Google Drive (rclone tipi) entegrasyonu eklenmiştir.**
 
 [<img src='https://github.com/saber-notes/saber/blob/main/assets_raw/badges/google-play-badge.svg'
     alt='Get it on Google Play'
