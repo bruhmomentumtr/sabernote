@@ -1,3 +1,4 @@
+# 🤖 Generated wholely or partially with Gemini; Google Antigravity
 name: Build All Platforms
 
 on:
@@ -6,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  FLUTTER_VERSION: "3.32.2"
+  FLUTTER_VERSION: "3.44.0"
 
 jobs:
   # =============================================
