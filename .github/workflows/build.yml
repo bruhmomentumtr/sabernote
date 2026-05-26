@@ -8,6 +8,7 @@ on:
 
 env:
   FLUTTER_VERSION: "3.44.0"
+  CARGO_TARGET_DIR: ${{ github.workspace }}/target
 
 jobs:
   # =============================================
@@ -20,11 +21,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool/
+            build/
+            .flutter-plugins-dependencies
+          key: ${{ runner.os }}-android-saber-${{ hashFiles('**/pubspec.lock') }}-${{ hashFiles('**/*.dart') }}
+          restore-keys: |
+            ${{ runner.os }}-android-saber-
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
+          cache: gradle
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -37,6 +50,7 @@ jobs:
         uses: moonrepo/setup-rust@v1
         with:
           targets: armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android
+          cache-target: release
 
       - name: Install apt dependencies
         run: |
@@ -75,6 +89,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool/
+            build/
+            windows/flutter/ephemeral/
+            .flutter-plugins-dependencies
+          key: ${{ runner.os }}-windows-saber-${{ hashFiles('**/pubspec.lock') }}-${{ hashFiles('**/*.dart') }}
+          restore-keys: |
+            ${{ runner.os }}-windows-saber-
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -106,6 +132,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool/
+            build/
+            linux/flutter/ephemeral/
+            .flutter-plugins-dependencies
+          key: ${{ runner.os }}-linux-saber-${{ hashFiles('**/pubspec.lock') }}-${{ hashFiles('**/*.dart') }}
+          restore-keys: |
+            ${{ runner.os }}-linux-saber-
+
       - name: Install apt dependencies
         run: |
           sudo apt-get update -qq
@@ -120,6 +158,8 @@ jobs:
 
       - name: Setup Rust
         uses: moonrepo/setup-rust@v1
+        with:
+          cache-target: release
 
       - run: flutter pub get
       - run: flutter build linux --release
