@@ -148,6 +148,8 @@ dependencies:
   path: ^1.9.1
 
   stow: ^0.6.0
+
+  google_sign_in: ^6.2.1
   stow_plain: ^0.6.0
   stow_secure: ^0.6.0
   stow_codecs: ^1.4.0

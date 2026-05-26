@@ -61,3 +61,17 @@ sentry-wizard
 coverage/
 /test-results.json
 /test-results.xml
+
+# Signing keys and secrets
+secrets.ps1
+base64_keystore.txt
+/android/key.properties
+/android/app/my-release-key.jks
+/android/app/google-services.json
+*.jks
+!android/fallback-key.jks
+
+# OAuth / API credentials
+googleconsoledriveapi.json
+client_secret*.json
+credentials*.json

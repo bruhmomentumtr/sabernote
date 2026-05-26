@@ -115,6 +115,13 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="nc" />
             </intent-filter>
+            <!-- Google OAuth2 callback via reverse client ID -->
+            <intent-filter android:label="google_oauth_callback">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.googleusercontent.apps.257678389698-bcfbo5ceagpbkr96i8f5o8rf27umoa14" />
+            </intent-filter>
         </activity>
 
        <!-- https://developer.android.com/guide/topics/resources/app-languages#android12-impl -->

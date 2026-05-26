@@ -1,4 +1,4 @@
-/// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity
 library;
 
 import 'dart:math';

@@ -1,13 +1,15 @@
 /// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity
 library;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:saber/data/google_drive/google_drive_models.dart';
@@ -27,7 +29,13 @@ class GoogleDriveLoginResult {
   final GoogleDriveProfile profile;
 }
 
-/// Implements the OAuth2 "installed app" browser flow, similar to rclone.
+/// Implements OAuth2 PKCE login for Google Drive.
+///
+/// - **Desktop (Windows/macOS/Linux)**: Opens the system browser, catches the
+///   callback on a local HTTP server (loopback redirect).
+/// - **Mobile (Android/iOS)**: Opens a Chrome Custom Tab (or ASWebAuthSession)
+///   via [FlutterWebAuth2], uses the reverse-client-ID custom URI scheme as the
+///   redirect. No Firebase or `google-services.json` required.
 class GoogleDriveLoginFlow {
   GoogleDriveLoginFlow({
     required this.clientId,
@@ -51,21 +59,33 @@ class GoogleDriveLoginFlow {
   Future<GoogleDriveLoginResult> start({
     Duration timeout = const Duration(minutes: 5),
   }) async {
-    final authCode = await _openBrowserAndWaitForCode(timeout: timeout);
-    final tokenPayload = await _exchangeCodeForTokens(authCode);
+    final isMobile = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+
+    final String codePayload;
+    if (isMobile) {
+      codePayload = await _openCustomTabAndWaitForCode();
+    } else {
+      codePayload = await _openBrowserAndWaitForCode(timeout: timeout);
+    }
+
+    final tokenPayload = await _exchangeCodeForTokens(codePayload);
 
     final accessToken = '${tokenPayload['access_token'] ?? ''}';
     final refreshToken = '${tokenPayload['refresh_token'] ?? ''}';
-    final expiresIn = int.tryParse('${tokenPayload['expires_in'] ?? 3600}') ?? 3600;
+    final expiresIn =
+        int.tryParse('${tokenPayload['expires_in'] ?? 3600}') ?? 3600;
     final expiresAt = DateTime.now().toUtc().add(Duration(seconds: expiresIn));
 
     if (accessToken.isEmpty) {
-      throw const FormatException('Google token endpoint returned no access token.');
+      throw const FormatException(
+        'Google token endpoint returned no access token.',
+      );
     }
     if (refreshToken.isEmpty) {
-      throw const FormatException(
+      log.warning(
         'Google token endpoint returned no refresh token. '
-        'Please remove prior consent and try again.',
+        'Token renewal will require re-authentication.',
       );
     }
 
@@ -77,6 +97,63 @@ class GoogleDriveLoginFlow {
       profile: profile,
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Mobile: Chrome Custom Tab via flutter_web_auth_2
+  // ---------------------------------------------------------------------------
+
+  /// Builds the reverse-client-ID redirect URI scheme that Google OAuth
+  /// recognises for "installed app" clients on mobile.
+  String get _mobileRedirectScheme {
+    // Client ID: xxxx.apps.googleusercontent.com
+    // Reverse:   com.googleusercontent.apps.xxxx
+    final parts = clientId.split('.').reversed.toList();
+    return parts.join('.');
+  }
+
+  /// Opens a Chrome Custom Tab (Android) or ASWebAuthSession (iOS) with
+  /// Google's OAuth consent screen and waits for the redirect.
+  Future<String> _openCustomTabAndWaitForCode() async {
+    final redirectUri = '$_mobileRedirectScheme:/oauth2callback';
+    final codeVerifier = _randomUrlSafe(64);
+    final codeChallenge = _codeChallengeFromVerifier(codeVerifier);
+
+    final authUri = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
+      'client_id': clientId,
+      'redirect_uri': redirectUri,
+      'response_type': 'code',
+      'scope': _oauthScopes.join(' '),
+      'access_type': 'offline',
+      'prompt': 'consent',
+      'code_challenge': codeChallenge,
+      'code_challenge_method': 'S256',
+    });
+
+    log.info('Opening Google auth URI in Custom Tab: $authUri');
+
+    final resultUri = await FlutterWebAuth2.authenticate(
+      url: authUri.toString(),
+      callbackUrlScheme: _mobileRedirectScheme,
+    );
+
+    final resultParams = Uri.parse(resultUri).queryParameters;
+    final error = resultParams['error'];
+    if (error != null) {
+      throw StateError('Google OAuth failed: $error');
+    }
+
+    final code = resultParams['code'];
+    if (code == null || code.isEmpty) {
+      throw const FormatException('No authorization code in Google callback.');
+    }
+
+    // Pack the code, verifier, and redirect URI for token exchange.
+    return '$code::$codeVerifier::$redirectUri';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Desktop: local loopback HTTP server
+  // ---------------------------------------------------------------------------
 
   Future<String> _openBrowserAndWaitForCode({required Duration timeout}) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -103,7 +180,10 @@ class GoogleDriveLoginFlow {
     });
 
     log.info('Opening Google auth URI: $authUri');
-    final opened = await launchUrl(authUri, mode: LaunchMode.externalApplication);
+    final opened = await launchUrl(
+      authUri,
+      mode: LaunchMode.externalApplication,
+    );
     if (!opened) {
       await server.close(force: true);
       throw OSError('Failed to open browser for Google OAuth login.');
@@ -117,7 +197,10 @@ class GoogleDriveLoginFlow {
       final error = query['error'];
       final code = query['code'];
 
-      Future<void> sendPage(String html, {int statusCode = HttpStatus.ok}) async {
+      Future<void> sendPage(
+        String html, {
+        int statusCode = HttpStatus.ok,
+      }) async {
         request.response
           ..statusCode = statusCode
           ..headers.contentType = ContentType.html
@@ -126,9 +209,14 @@ class GoogleDriveLoginFlow {
       }
 
       if (error != null) {
-        await sendPage('<h1>Authorization failed</h1><p>$error</p>', statusCode: 400);
+        await sendPage(
+          '<h1>Authorization failed</h1><p>$error</p>',
+          statusCode: 400,
+        );
         if (!codeCompleter.isCompleted) {
-          codeCompleter.completeError(StateError('Google OAuth failed: $error'));
+          codeCompleter.completeError(
+            StateError('Google OAuth failed: $error'),
+          );
         }
         return;
       }
@@ -144,7 +232,9 @@ class GoogleDriveLoginFlow {
       }
 
       await sendPage('<h1>Login successful</h1><p>You can close this tab.</p>');
-      if (!codeCompleter.isCompleted) codeCompleter.complete('$code::$codeVerifier::$redirectUri');
+      if (!codeCompleter.isCompleted) {
+        codeCompleter.complete('$code::$codeVerifier::$redirectUri');
+      }
     });
 
     try {
@@ -156,7 +246,13 @@ class GoogleDriveLoginFlow {
     }
   }
 
-  Future<Map<String, dynamic>> _exchangeCodeForTokens(String codePayload) async {
+  // ---------------------------------------------------------------------------
+  // Token exchange & profile (shared by both flows)
+  // ---------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>> _exchangeCodeForTokens(
+    String codePayload,
+  ) async {
     final parts = codePayload.split('::');
     if (parts.length != 3) {
       throw const FormatException('OAuth payload format is invalid.');
@@ -206,7 +302,9 @@ class GoogleDriveLoginFlow {
 
     final email = '${decoded['email'] ?? ''}';
     if (email.isEmpty) {
-      throw const FormatException('Google profile response did not include email.');
+      throw const FormatException(
+        'Google profile response did not include email.',
+      );
     }
 
     final pictureRaw = '${decoded['picture'] ?? ''}';

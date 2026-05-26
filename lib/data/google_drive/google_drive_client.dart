@@ -1,9 +1,11 @@
 /// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity
 library;
 
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
@@ -359,6 +361,12 @@ class GoogleDriveClient {
   }
 
   Future<void> _refreshAccessToken() async {
+    if (refreshToken.isEmpty) {
+      throw StateError(
+        'No refresh token available. Please sign in again.',
+      );
+    }
+
     final body = <String, String>{
       'client_id': clientId,
       'grant_type': 'refresh_token',
