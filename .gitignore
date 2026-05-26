@@ -56,6 +56,7 @@ Saber-Linux-Portable.tar.gz
 .sentry-native/
 sentry.properties
 sentry-wizard
+/external/
 
 # Test outputs
 coverage/
