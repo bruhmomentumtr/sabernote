@@ -1,11 +1,7 @@
-name: Run tests
+name: "[Legacy] Run tests"
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-      - main
 
 jobs:
   run-tests:
@@ -84,3 +80,4 @@ jobs:
 
       - name: Check formatting
         run: dart format lib packages scripts test --output none --set-exit-if-changed
+

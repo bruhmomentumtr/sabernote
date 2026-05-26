@@ -1,13 +1,6 @@
-name: Check if the Flutter submodule is up to date
+name: "[Legacy] Check if the Flutter submodule is up to date"
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/check-flutter-submodule.yml
-      - submodules/flutter
-  schedule:
-    # every 2 days at 5:58 am (random time to avoid spikes in GitHub Actions usage)
-    - cron: "58 5 */2 * *"
 
 jobs:
   check-flutter-submodule:
@@ -24,3 +17,4 @@ jobs:
 
       - name: Check if the Flutter submodule is up to date
         run: dart .github/scripts/check_flutter_submodule.dart
+

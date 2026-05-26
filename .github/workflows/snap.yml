@@ -1,11 +1,7 @@
-name: Build unofficial snap
+name: "[Legacy] Build unofficial snap"
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/snap.yml
-      - snap/snapcraft.yaml
 
 jobs:
   build-snap:
@@ -28,3 +24,4 @@ jobs:
         with:
           name: Saber-Snap
           path: ${{ steps.build.outputs.snap }}
+

@@ -1,26 +1,6 @@
-name: Top issues
+name: "[Legacy] Top issues"
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/top-issues.yml
-  schedule:
-    # every day at 10:50 am (random time to avoid spikes in GitHub Actions usage)
-    - cron: "50 10 * * *"
-
-permissions:
-  actions: read
-  checks: read
-  contents: read
-  deployments: read
-  issues: write
-  discussions: read
-  packages: read
-  pages: read
-  pull-requests: write
-  repository-projects: read
-  security-events: read
-  statuses: read
 
 jobs:
   top-issues:
@@ -37,3 +17,4 @@ jobs:
           top_bugs: true
           top_features: true
           top_pull_requests: true
+

@@ -1,108 +1,121 @@
-# <img src="https://github.com/saber-notes/saber/raw/main/assets/icon/icon.png" width="30" height="30" alt="Logo"> Saber (Fork)
+# <img src="https://github.com/saber-notes/saber/raw/main/assets/icon/icon.png" width="30" height="30" alt="Logo"> SaberNote
 
-> **Bu fork'ta Nextcloud yapısı kaldırılmış ve Google Drive (rclone tipi) entegrasyonu eklenmiştir.**)
+> **[saber-notes/saber](https://github.com/saber-notes/saber) fork'u — Nextcloud yerine Google Drive entegrasyonu.**
 
-Saber is the notes app built for handwriting.
+El yazısı not uygulaması Saber'ın, Google Drive ile senkronizasyon desteği eklenmiş topluluk fork'u.
 
-It's designed to be as simple and intuitive as possible, while still delivering unique features that you'll actually use. Additionally, Saber is available across all your devices, large and small, and syncs between them seamlessly.
+## ✨ Bu fork'ta ne farklı?
 
-Notably, it can invert your notes when you're in dark mode. This allows you to write with white ink on a black background, which is much easier on the eyes in low-light environments like when the teacher turns off the lights in class.
-Images and PDFs are also inverted, so you can still use a digital printout or a textbook without the fuss.
+| Özellik | Upstream Saber | Bu Fork |
+|---------|---------------|---------|
+| Bulut senkronizasyon | Nextcloud | **Google Drive** |
+| Kimlik doğrulama | Nextcloud login | **Google OAuth2 (PKCE)** |
+| Windows | ✅ | ✅ |
+| Android | ✅ | ✅ Chrome Custom Tab ile native login |
+| Linux | ✅ | ✅ |
+| Firebase gerekli mi? | — | **Hayır** |
 
-Saber uses a dual-password system to protect your notes from anyone but you, even if they have complete control over the server. You can safely store your notes on the official Saber server, another server, or even host your own!
+## 🚀 Kurulum
 
-The app is completely open-source so that anyone can view the source code and see exactly what it's doing and how it handles your data. Many other note-taking apps are closed-source and proprietary, meaning that their inner workings are a mystery to the public.
+### Hazır Build İndir
 
-As someone who studies maths, highlighting multi-line equations was always a hassle with other apps, where the highlighter would change color when it overlapped with itself. Another problem I had was that in some apps, the highlighter would render on top of the text, fading it out and making it hard to read.
-Saber's highlighter has no such issues. It utilizes canvas compositing to render the highlighter in a way that is consistent with/better than traditional paper, where it handles overlaps and maintains color consistency.
+[Releases](../../releases) sayfasından platformuna uygun dosyayı indir:
 
-Saber has everything you need to keep your notes organized. Create folders inside folders inside folders to your heart's content with no limit on the number of nested folders. And even though a note may be buried deep within a nested folder, you can still access it easily with your most recent notes always available on the home screen.
+| Platform | Dosya |
+|----------|-------|
+| Windows | `SaberNote-Windows.zip` |
+| Android | `SaberNote-Android.apk` |
+| Linux | `SaberNote-Linux.tar.gz` |
 
-Discover a whole new way to capture and organize your thoughts with Saber. Whether you're a student, professional, or creative mind, Saber is your trusted companion for digital handwriting. Download now and let your ideas flow freely!
+### Kaynaktan Derleme
 
-[![Latest release](https://img.shields.io/github/v/release/saber-notes/saber)](https://github.com/saber-notes/saber/releases/latest)
-[![Flathub](https://img.shields.io/flathub/v/com.adilhanney.saber)](https://flathub.org/apps/details/com.adilhanney.saber)
-[![F-Droid](https://img.shields.io/f-droid/v/com.adilhanney.saber)](https://f-droid.org/en/packages/com.adilhanney.saber/)
-[![GitHub downloads](https://img.shields.io/github/downloads/saber-notes/saber/total?label=GitHub%20downloads)](https://github.com/saber-notes/saber/releases)
-[![Flathub downloads](https://img.shields.io/flathub/downloads/com.adilhanney.saber?label=Flathub%20downloads)](https://flathub.org/apps/details/com.adilhanney.saber)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/adil192)](https://github.com/sponsors/adil192)
-[![License](https://img.shields.io/github/license/saber-notes/saber)](https://github.com/saber-notes/saber/blob/main/LICENSE.md)
-[![Translation status](https://hosted.weblate.org/widget/saber-notes/saber/svg-badge.svg)](https://hosted.weblate.org/engage/saber-notes/)
-[![Codecov](https://codecov.io/gh/saber-notes/saber/branch/main/graph/badge.svg?token=EGQSN0THW2)](https://codecov.io/gh/saber-notes/saber)
+```bash
+# Bağımlılıkları yükle
+flutter pub get
 
-<details open>
-<summary>Tap to show/hide screenshots</summary>
+# Windows
+flutter build windows --release
 
-<div>
-<img src="https://github.com/saber-notes/saber/raw/main/metadata/en-US/images/phoneScreenshots/1_home.png" width="180">
-<img src="https://github.com/saber-notes/saber/raw/main/metadata/en-US/images/phoneScreenshots/2_editor.png" width="180">
-<img src="https://github.com/saber-notes/saber/raw/main/metadata/en-US/images/phoneScreenshots/3_login.png" width="180">
-<img src="https://github.com/saber-notes/saber/raw/main/metadata/en-US/images/phoneScreenshots/4_settings.png" width="180">
-</div>
-</details>
+# Android
+flutter build apk --release
 
-## Features
+# Linux
+flutter build linux --release
+```
 
-Please see [#1 Saber progress][progress].
+Windows + Android tek seferde:
+```bash
+# Windows'ta
+build_all.bat
+```
 
-## Install
+## 🔑 Google Drive Kurulumu
 
-Please see
-[Install Saber](https://github.com/saber-notes/saber/wiki/install)
-on the wiki.
+### 1. OAuth Credentials Oluştur
 
-## Build from source
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+2. **OAuth 2.0 Client ID** oluştur → Tip: **Desktop app**
+3. **Google Drive API**'yi etkinleştir (APIs & Services → Library → Google Drive API)
+4. Client ID ve Client Secret'ı not al
 
-Please see
-[Build Saber](https://github.com/saber-notes/saber/wiki/build)
-on the wiki.
+### 2. Uygulamada Giriş Yap
 
-## Links
+1. Uygulamayı aç → Ayarlar → Giriş Yap
+2. Client ID ve Client Secret'ı gir
+3. **"Sign in with Google"** butonuna bas
+4. Google hesabını seç ve izin ver
 
-- [Nextcloud server][nextcloud]
-- [Privacy policy][privacy]
-- [License][license]
-- [Releases][releases]
+> **Not:** Aynı OAuth credentials hem Windows hem Android'de çalışır. Firebase veya `google-services.json` gerekmez.
 
-## Translating
+### Android'de Nasıl Çalışır?
 
-All translations are thanks to our community of contributors.
+Android'de `localhost` redirect çalışmadığı için **Chrome Custom Tab** kullanılır:
+- `flutter_web_auth_2` paketi ile Chrome Custom Tab açılır
+- OAuth callback, reverse-client-ID scheme ile uygulamaya geri döner
+- Tam refresh token desteği (native Google Sign-In SDK'sından farklı olarak)
 
-If you'd like to help out translating Saber, head to [Weblate](https://hosted.weblate.org/engage/saber-notes/)!
+## 🏗️ CI/CD
 
-[![Translation status](https://hosted.weblate.org/widget/saber-notes/multi-auto.svg)](https://hosted.weblate.org/engage/saber-notes/)
+GitHub Actions ile otomatik build:
 
-## Supporting Saber
+| Workflow | Açıklama | Tetikleyici |
+|----------|----------|-------------|
+| `build.yml` | Android + Windows + Linux | Push to main, manuel |
+| Diğerleri (`[Legacy]`) | Upstream'den kalan workflow'lar | Sadece manuel |
 
-If you like Saber, please consider supporting it by:
-- Spreading the word!
-- Starring the project on GitHub
-- Sponsoring me on [GitHub Sponsors](https://github.com/sponsors/adil192)
-- Donating via [PayPal](https://paypal.me/adilhanney)
-- Buying more storage on the Nextcloud server: see [Pricing](pricing.md)
+### GitHub Secrets (Opsiyonel — İmzalı APK için)
 
-## Development notes
+| Secret | Açıklama |
+|--------|----------|
+| `ANDROID_KEYSTORE_BASE64` | Keystore dosyasının base64 hali |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore şifresi |
+| `ANDROID_KEY_PASSWORD` | Key şifresi |
+| `ANDROID_KEYSTORE_ALIAS` | Key alias |
 
-Please see
-[Maintainer notes](https://github.com/saber-notes/saber/wiki/Maintainer-notes)
-on the wiki.
+Keystore oluşturmak için: `keystoreb64creator.ps1`
 
+## 📁 Proje Yapısı (Değişen Dosyalar)
 
-[f-droid]: https://f-droid.org/packages/com.adilhanney.saber/
-[flathub]: https://flathub.org/apps/details/com.adilhanney.saber
-[google_play]: https://play.google.com/store/apps/details?id=com.adilhanney.saber
-[snap]: https://snapcraft.io/saber
-[app_store]: https://apps.apple.com/us/app/saber/id1671523739
-[download_windows]: https://github.com/saber-notes/saber/releases/download/v1.34.0/SaberInstaller_v1.34.0.exe
-[download_appimage]: https://github.com/saber-notes/saber/releases/download/v1.34.0/Saber-1.34.0-x86_64.AppImage
+```
+lib/
+├── data/google_drive/
+│   ├── login_flow.dart          # OAuth2 PKCE akışı (Desktop + Mobile)
+│   ├── google_drive_client.dart # Drive API istemcisi + token yenileme
+│   ├── google_drive_models.dart # Veri modelleri
+│   └── saber_syncer.dart        # Senkronizasyon mantığı
+├── components/cloud/
+│   └── nc_login_step.dart       # Giriş ekranı UI
+└── data/prefs.dart              # Kullanıcı tercihleri
 
-[nextcloud]: https://nc.saber.adil.hanney.org/
+android/app/src/main/AndroidManifest.xml  # OAuth callback scheme
+```
 
-[privacy]: https://github.com/saber-notes/saber/blob/main/privacy_policy.md
-[license]: https://github.com/saber-notes/saber/blob/main/LICENSE.md
+## 🔗 Bağlantılar
 
-[releases]: https://github.com/saber-notes/saber/releases
-[issues]: https://github.com/saber-notes/saber/issues
-[progress]: https://github.com/saber-notes/saber/discussions/1
+- [Upstream Saber](https://github.com/saber-notes/saber)
+- [Lisans](LICENSE.md)
+- [Gizlilik Politikası](privacy_policy.md)
 
-[f-droid-manifest]: https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/com.adilhanney.saber.yml
+## 📝 Lisans
+
+Bu proje, upstream Saber ile aynı lisans altındadır. Detaylar için [LICENSE.md](LICENSE.md) dosyasına bakın.

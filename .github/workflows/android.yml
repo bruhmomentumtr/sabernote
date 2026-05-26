@@ -1,15 +1,7 @@
-name: Build for Android
+name: "[Legacy] Build for Android"
 
 on:
-  # Enable manual run
   workflow_dispatch:
-  push:
-    tags:
-      - "**"
-    branches:
-      - "**"
-    paths:
-      - .github/workflows/android.yml
 
 jobs:
   warmup-android-cache:

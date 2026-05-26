@@ -1,18 +1,10 @@
-name: Build for macOS
+name: "[Legacy] Build for macOS"
 
 # Using instructions from
 # https://docs.flutter.dev/deployment/macos#create-a-build-archive-with-codemagic-cli-tools
 
 on:
-  # Enable manual run
   workflow_dispatch:
-  push:
-    tags:
-      - "**"
-    branches:
-      - "**"
-    paths:
-      - .github/workflows/macos.yml
 
 jobs:
   build-macos:
@@ -137,3 +129,4 @@ jobs:
       - name: Publish to App Store
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: app-store-connect publish --path ${{ steps.package.outputs.PACKAGE_NAME }}
+

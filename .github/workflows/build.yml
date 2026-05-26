@@ -1,0 +1,135 @@
+name: Build All Platforms
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+env:
+  FLUTTER_VERSION: "3.32.2"
+
+jobs:
+  # =============================================
+  #  ANDROID
+  # =============================================
+  build-android:
+    name: "Android APK"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Rust
+        uses: moonrepo/setup-rust@v1
+        with:
+          targets: armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android
+
+      - name: Install apt dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgtk-3-dev libx11-dev pkg-config cmake ninja-build curl libcurl4-openssl-dev libsecret-1-dev libjsoncpp-dev libunwind-dev
+
+      - name: Setup keystore
+        env:
+          SIGNING_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        if: ${{ env.SIGNING_KEY != '' }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/my-release-key.jks
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          storeFile=my-release-key.jks
+          EOF
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaberNote-Android
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  # =============================================
+  #  WINDOWS
+  # =============================================
+  build-windows:
+    name: "Windows"
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter build windows --release
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "SaberNote-Windows.zip"
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaberNote-Windows
+          path: SaberNote-Windows.zip
+
+  # =============================================
+  #  LINUX
+  # =============================================
+  build-linux:
+    name: "Linux"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install apt dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgtk-3-dev libx11-dev pkg-config cmake ninja-build curl libcurl4-openssl-dev libblkid-dev libsecret-1-dev libjsoncpp-dev libunwind-dev webkit2gtk-4.1-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Rust
+        uses: moonrepo/setup-rust@v1
+
+      - run: flutter pub get
+      - run: flutter build linux --release
+
+      - name: Create tar.gz
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czvf "$GITHUB_WORKSPACE/SaberNote-Linux.tar.gz" .
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaberNote-Linux
+          path: SaberNote-Linux.tar.gz

@@ -1,16 +1,7 @@
-name: Build for Linux
+name: "[Legacy] Build for Linux"
 
 on:
-  # Enable manual run
   workflow_dispatch:
-  push:
-    tags:
-      - "**"
-    branches:
-      - "**"
-    paths:
-      - .github/workflows/linux.yml
-      - appimage/AppImageBuilder.yml
 
 jobs:
   build-linux:

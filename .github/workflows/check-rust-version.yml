@@ -1,13 +1,6 @@
-name: Check if the Rust version is up to date
+name: "[Legacy] Check if the Rust version is up to date"
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/check-rust-version.yml
-      - rust-toolchain.toml
-  schedule:
-    # every week at 13:44 (random time to avoid spikes in GitHub Actions usage)
-    - cron: "44 13 * * 0"
 
 jobs:
   check-rust-version:
@@ -39,3 +32,4 @@ jobs:
           else
             echo "Rust version is up to date. Local: $LOCAL_RUST_VERSION, Latest: $LATEST_RUST_VERSION"
           fi
+

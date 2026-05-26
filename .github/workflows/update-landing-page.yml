@@ -1,15 +1,7 @@
-name: Update saber_landing page
+name: "[Legacy] Update saber_landing page"
 
 on:
-  # Enable manual run
   workflow_dispatch:
-  push:
-    tags:
-      - "**"
-    branches:
-      - "**"
-    paths:
-      - .github/workflows/update-landing-page.yml
 
 jobs:
   dispatch:
@@ -26,3 +18,4 @@ jobs:
           token: ${{ secrets.SABER_LANDING_TOKEN }}
           repository: saber-notes/saber_landing
           event-type: saber-release
+
