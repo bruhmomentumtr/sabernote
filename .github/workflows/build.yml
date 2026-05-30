@@ -1,4 +1,5 @@
 # 🤖 Generated wholely or partially with Gemini; Google Antigravity
+# 🤖 Modified with Claude Opus 4.6; Google Antigravity (rust/cargokit fix)
 name: Build All Platforms
 
 on:
@@ -46,10 +47,6 @@ jobs:
           channel: stable
           cache: true
 
-      # -- ADDED STEP HERE --
-      - name: Clean rustup temp and cache (workaround download errors)
-        run: rm -rf ~/.rustup/tmp ~/.rustup/downloads || true
-
       - name: Setup Rust
         uses: moonrepo/setup-rust@v1
         with:
@@ -74,17 +71,19 @@ jobs:
           storeFile=my-release-key.jks
           EOF
 
-      - name: Pre-build patches
+      # Pre-build patches: remove unnecessary dependencies for Android
+      - name: Apply pre-build patches
         run: |
-          ./patches/pre/remove_dev_dependencies.sh
-          ./patches/pre/remove_linux_dependencies.sh
+          bash patches/pre/remove_dev_dependencies.sh
+          bash patches/pre/remove_linux_dependencies.sh
 
       - run: flutter pub get
 
-      - name: Post-build patches
-        run: |
-          ./patches/post/patch_rust_versions.sh
-          ./patches/post/remove_wasm_libs.sh
+      # Post pub-get: patch cargokit to use our pinned Rust version (1.95.0)
+      # instead of "stable", preventing race conditions when two cargokit
+      # instances try to download the same rustup component simultaneously.
+      - name: Patch Rust versions in cargokit
+        run: bash patches/post/patch_rust_versions.sh
 
       - run: flutter build apk --release
 
@@ -123,20 +122,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Pre-build patches
-        shell: bash
-        run: |
-          ./patches/pre/remove_dev_dependencies.sh
-          ./patches/pre/remove_linux_dependencies.sh
-
       - run: flutter pub get
-
-      - name: Post-build patches
-        shell: bash
-        run: |
-          ./patches/post/patch_rust_versions.sh
-          ./patches/post/remove_wasm_libs.sh
-
       - run: flutter build windows --release
 
       - name: Create ZIP
@@ -189,17 +175,15 @@ jobs:
         with:
           cache-target: release
 
-      - name: Pre-build patches
-        run: |
-          ./patches/pre/remove_dev_dependencies.sh
-          ./patches/pre/remove_linux_dependencies.sh
+      # Pre-build patches
+      - name: Apply pre-build patches
+        run: bash patches/pre/remove_dev_dependencies.sh
 
       - run: flutter pub get
 
-      - name: Post-build patches
-        run: |
-          ./patches/post/patch_rust_versions.sh
-          ./patches/post/remove_wasm_libs.sh
+      # Patch cargokit to use pinned Rust version
+      - name: Patch Rust versions in cargokit
+        run: bash patches/post/patch_rust_versions.sh
 
       - run: flutter build linux --release
 
