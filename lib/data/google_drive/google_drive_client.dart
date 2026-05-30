@@ -1,5 +1,6 @@
 /// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
 /// 🤖 Modified with Claude Opus 4.6; Google Antigravity
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity (sync fixes)
 library;
 
 import 'dart:convert';
@@ -196,6 +197,10 @@ class GoogleDriveClient {
     return getRemoteFileByName(name);
   }
 
+  /// Returns the most recently modified remote file matching [name].
+  ///
+  /// If duplicates exist (same name, same parent folder), keeps the newest
+  /// and trashes the rest to prevent the "multiple copies" problem.
   Future<GoogleDriveRemoteFile?> getRemoteFileByName(String name) async {
     final folderId = await getOrCreateAppFolderId();
     final escapedName = _escapeForDriveQuery(name);
@@ -213,29 +218,35 @@ class GoogleDriveClient {
 
     final files = json['files'];
     if (files is! List || files.isEmpty) return null;
-    Map<String, dynamic>? file;
-    for (final candidate in files) {
-      if (candidate is Map<String, dynamic>) {
-        file = candidate;
-        break;
+
+    final parsed = <GoogleDriveRemoteFile>[];
+    for (final candidate in files.whereType<Map<String, dynamic>>()) {
+      final id = '${candidate['id'] ?? ''}';
+      final actualName = '${candidate['name'] ?? ''}';
+      if (id.isEmpty || actualName.isEmpty) continue;
+      parsed.add(GoogleDriveRemoteFile(
+        id: id,
+        name: actualName,
+        remotePath: '$appRootDirectoryPrefix/$actualName',
+        size: int.tryParse('${candidate['size'] ?? ''}'),
+        lastModified: DateTime.tryParse('${candidate['modifiedTime'] ?? ''}')?.toUtc(),
+        trashed: candidate['trashed'] == true,
+      ));
+    }
+    if (parsed.isEmpty) return null;
+
+    // Keep the newest, trash duplicates.
+    final newest = parsed.first; // already sorted by modifiedTime desc
+    if (parsed.length > 1) {
+      log.info('Found ${parsed.length} duplicates for "$name", cleaning up.');
+      for (final duplicate in parsed.skip(1)) {
+        _trashFileById(duplicate.id).ignore();
+        _fileCache.remove(duplicate.remotePath);
       }
     }
-    if (file == null) return null;
 
-    final id = '${file['id'] ?? ''}';
-    final actualName = '${file['name'] ?? ''}';
-    if (id.isEmpty || actualName.isEmpty) return null;
-
-    final remoteFile = GoogleDriveRemoteFile(
-      id: id,
-      name: actualName,
-      remotePath: '$appRootDirectoryPrefix/$actualName',
-      size: int.tryParse('${file['size'] ?? ''}'),
-      lastModified: DateTime.tryParse('${file['modifiedTime'] ?? ''}')?.toUtc(),
-      trashed: file['trashed'] == true,
-    );
-    _fileCache[remoteFile.remotePath] = remoteFile;
-    return remoteFile;
+    _fileCache[newest.remotePath] = newest;
+    return newest;
   }
 
   Future<Uint8List> downloadFileByRemotePath(String remotePath) async {
@@ -267,6 +278,7 @@ class GoogleDriveClient {
       throw FormatException('Invalid remote path: $remotePath');
     }
     final name = remotePath.substring(slashIndex + 1);
+    // getRemoteFileByName also deduplicates if multiple copies exist.
     final existing = await getRemoteFileByName(name);
     if (existing == null) {
       await _createFile(name: name, bytes: bytes, lastModified: lastModified);
@@ -277,6 +289,56 @@ class GoogleDriveClient {
         bytes: bytes,
         lastModified: lastModified,
       );
+    }
+  }
+
+  /// Deletes (trashes) a remote file by its remote path.
+  ///
+  /// Returns `true` if the file was trashed, `false` if not found.
+  Future<bool> deleteFileByRemotePath(String remotePath) async {
+    final slashIndex = remotePath.lastIndexOf('/');
+    if (slashIndex < 0 || slashIndex >= remotePath.length - 1) return false;
+    final name = remotePath.substring(slashIndex + 1);
+
+    // Trash ALL copies (handles duplicates too).
+    final folderId = await getOrCreateAppFolderId();
+    final escapedName = _escapeForDriveQuery(name);
+    final json = await _requestJson(
+      method: 'GET',
+      uri: Uri.https('www.googleapis.com', '/drive/v3/files', {
+        'q': "name = '$escapedName' and '$folderId' in parents and trashed = false",
+        'fields': 'files(id)',
+        'spaces': 'drive',
+        'pageSize': '100',
+      }),
+    );
+
+    final files = json['files'];
+    if (files is! List || files.isEmpty) return false;
+
+    var trashed = false;
+    for (final file in files.whereType<Map<String, dynamic>>()) {
+      final id = '${file['id'] ?? ''}';
+      if (id.isEmpty) continue;
+      await _trashFileById(id);
+      trashed = true;
+    }
+
+    _fileCache.remove(remotePath);
+    return trashed;
+  }
+
+  /// Moves a single file to trash by its Drive file ID.
+  Future<void> _trashFileById(String fileId) async {
+    try {
+      await _requestJson(
+        method: 'PATCH',
+        uri: Uri.https('www.googleapis.com', '/drive/v3/files/$fileId'),
+        body: {'trashed': true},
+      );
+      log.fine('Trashed file $fileId');
+    } catch (e, st) {
+      log.warning('Failed to trash file $fileId: $e', e, st);
     }
   }
 

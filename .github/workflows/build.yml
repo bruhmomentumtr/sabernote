@@ -74,7 +74,18 @@ jobs:
           storeFile=my-release-key.jks
           EOF
 
+      - name: Pre-build patches
+        run: |
+          ./patches/pre/remove_dev_dependencies.sh
+          ./patches/pre/remove_linux_dependencies.sh
+
       - run: flutter pub get
+
+      - name: Post-build patches
+        run: |
+          ./patches/post/patch_rust_versions.sh
+          ./patches/post/remove_wasm_libs.sh
+
       - run: flutter build apk --release
 
       - name: Upload APK
@@ -112,7 +123,20 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Pre-build patches
+        shell: bash
+        run: |
+          ./patches/pre/remove_dev_dependencies.sh
+          ./patches/pre/remove_linux_dependencies.sh
+
       - run: flutter pub get
+
+      - name: Post-build patches
+        shell: bash
+        run: |
+          ./patches/post/patch_rust_versions.sh
+          ./patches/post/remove_wasm_libs.sh
+
       - run: flutter build windows --release
 
       - name: Create ZIP
@@ -165,7 +189,18 @@ jobs:
         with:
           cache-target: release
 
+      - name: Pre-build patches
+        run: |
+          ./patches/pre/remove_dev_dependencies.sh
+          ./patches/pre/remove_linux_dependencies.sh
+
       - run: flutter pub get
+
+      - name: Post-build patches
+        run: |
+          ./patches/post/patch_rust_versions.sh
+          ./patches/post/remove_wasm_libs.sh
+
       - run: flutter build linux --release
 
       - name: Create tar.gz

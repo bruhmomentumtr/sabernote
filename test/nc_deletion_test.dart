@@ -31,6 +31,8 @@ bool _hasRequiredEnv() {
       env[_envEncPassword]?.isNotEmpty == true;
 }
 
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity (sync fixes)
+
 void main() {
   test(
     'Test deleting a file and syncing it',
@@ -93,27 +95,22 @@ void main() {
       // Delete the file
       FileManager.deleteFile(filePathLocal, alsoUpload: false);
 
-      // Upload deletion marker to Google Drive
+      // Upload deletion to Google Drive (this now actually trashes the file)
       syncer.uploader.clearPending();
       syncer.uploader.enqueue(syncFile: syncFile);
       await syncer.uploader.waitUntilEmpty();
 
-      // Check that the file is now a deletion marker (0 bytes)
+      // Check that the file is now trashed/gone from Google Drive
+      // (not a 0KB marker anymore — it's actually removed)
       final remoteAfterDelete = await syncer.interface.getRemoteFile(
         syncFile.remotePath,
         useCache: false,
       );
       expect(
-        remoteAfterDelete?.size ?? -1,
-        0,
-        reason: 'File should be empty on Google Drive',
+        remoteAfterDelete,
+        isNull,
+        reason: 'File should be trashed from Google Drive, not a 0KB marker',
       );
-
-      // Sync the file from Google Drive
-      syncFile.remoteFile = remoteAfterDelete;
-      syncer.downloader.clearPending();
-      syncer.downloader.enqueue(syncFile: syncFile);
-      await syncer.downloader.waitUntilEmpty();
 
       // Check that the file is deleted locally
       final exists = FileManager.doesFileExist(filePathLocal);

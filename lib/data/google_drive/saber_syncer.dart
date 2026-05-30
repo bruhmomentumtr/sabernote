@@ -1,4 +1,5 @@
 /// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity (sync fixes)
 library;
 
 import 'dart:convert';
@@ -196,6 +197,17 @@ class SaberSyncInterface
       await FileManager.deleteFile(file.relativeLocalPath, alsoUpload: false);
       stows.fileSyncAlreadyDeleted.value.add(file.relativeLocalPath);
       stows.fileSyncAlreadyDeleted.notifyListeners();
+
+      // Also clean up the remote deleted marker so it doesn't linger as 0KB.
+      final client = SaberSyncInterface.client;
+      if (client != null && file.remoteFile != null) {
+        try {
+          await client.deleteFileByRemotePath(file.remotePath);
+          log.fine('Cleaned up remote deleted marker: ${file.remotePath}');
+        } catch (e) {
+          log.warning('Failed to clean up remote deleted marker: $e');
+        }
+      }
       return;
     }
 
@@ -265,6 +277,20 @@ class SaberSyncInterface
 
   @override
   Future<void> uploadRemoteFile(SaberSyncFile file, Uint8List encryptedBytes) async {
+    final client = SaberSyncInterface.client;
+    if (client == null) {
+      throw Exception('Tried to upload file without logging in.');
+    }
+
+    // If the local file was deleted, the bytes will be empty.
+    // Instead of uploading a 0-byte "deleted marker", actually delete
+    // the file from Google Drive.
+    if (encryptedBytes.isEmpty) {
+      log.fine('Local file deleted, removing from Drive: ${file.remotePath}');
+      await client.deleteFileByRemotePath(file.remotePath);
+      return;
+    }
+
     DateTime lastModified;
     try {
       lastModified = file.localFile.lastModifiedSync();
@@ -273,11 +299,6 @@ class SaberSyncInterface
     }
     if (lastModified.isBefore(stows.fileSyncResyncEverythingDate.value)) {
       lastModified = stows.fileSyncResyncEverythingDate.value;
-    }
-
-    final client = SaberSyncInterface.client;
-    if (client == null) {
-      throw Exception('Tried to upload file without logging in.');
     }
 
     await client.uploadFileByRemotePath(

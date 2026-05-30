@@ -49,7 +49,10 @@ class GoogleDriveRemoteFile {
   final DateTime? lastModified;
   final bool trashed;
 
-  bool get isDeletedMarker => (size ?? 0) <= 0;
+  /// A file is considered a "deleted marker" only when its size is
+  /// explicitly zero. A null [size] means the API didn't return it
+  /// (e.g. right after creation) — that is not a deletion signal.
+  bool get isDeletedMarker => size != null && size == 0;
 }
 
 class GoogleDriveProfile {
