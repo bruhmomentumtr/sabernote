@@ -1,5 +1,6 @@
 #!/usr/bin/env dart
 // ignore_for_file: avoid_print
+/// 🤖 Modified with Gemini 3.5 Flash; Google Antigravity
 
 import 'dart:io';
 
@@ -197,7 +198,7 @@ Future<void> updateAllFiles() async {
   }
 
   // update flatpak changelog
-  final metainfoFile = File('flatpak/com.adilhanney.saber.metainfo.xml');
+  final metainfoFile = File('flatpak/com.bruhmomentumtr.zaber.metainfo.xml');
   final metainfoLines = await metainfoFile.readAsLines();
   final originalMetainfoLines = metainfoLines.toList();
   if (await metainfoFile.contains(newVersion.buildName)) {

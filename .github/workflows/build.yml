@@ -63,12 +63,12 @@ jobs:
           SIGNING_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         if: ${{ env.SIGNING_KEY != '' }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/my-release-key.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/zaber-release-key.jks
           cat > android/key.properties << EOF
           storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEYSTORE_ALIAS }}
-          storeFile=my-release-key.jks
+          storeFile=zaber-release-key.jks
           EOF
 
       # Pre-build patches: remove unnecessary dependencies for Android

@@ -89,7 +89,7 @@ Write-Host "🚀 Android Build Süreci Başlatılıyor..." -ForegroundColor Cyan
 # ---------------------------------------------------------
 # 1. KEYSTORE KONTROLÜ (Opsiyonel - Release build için)
 # ---------------------------------------------------------
-$KEYSTORE_FILE = "app\my-release-key.jks"
+$KEYSTORE_FILE = "app\zaber-release-key.jks"
 
 # secrets.ps1 varsa yükle (release build için)
 if (Test-Path "secrets.ps1") {
@@ -153,7 +153,7 @@ if ($actualBuildType -eq "release" -and $SIGN_APK) {
 storePassword=$($env:ANDROID_KEYSTORE_PASSWORD)
 keyPassword=$($env:ANDROID_KEY_PASSWORD)
 keyAlias=$($env:ANDROID_KEYSTORE_ALIAS)
-storeFile=my-release-key.jks
+storeFile=zaber-release-key.jks
 "@ | Out-File -FilePath "key.properties" -Encoding ASCII -NoNewline
     }
 }

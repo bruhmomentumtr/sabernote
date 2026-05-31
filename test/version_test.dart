@@ -1,4 +1,5 @@
 @TestOn('linux || mac-os || windows')
+/// 🤖 Modified with Gemini 3.5 Flash; Google Antigravity
 library;
 
 import 'dart:io';
@@ -46,7 +47,7 @@ void main() {
       reason: 'Dummy text found in Android changelog',
     );
 
-    final flatpakMetadata = File('flatpak/com.adilhanney.saber.metainfo.xml');
+    final flatpakMetadata = File('flatpak/com.bruhmomentumtr.zaber.metainfo.xml');
     expect(flatpakMetadata.existsSync(), true);
     final flatpakMetadataContents = await flatpakMetadata.readAsString();
     expect(
@@ -57,7 +58,7 @@ void main() {
   });
 
   test('Check that metainfo <release> tags are in the right place', () async {
-    final flatpakMetadata = File('flatpak/com.adilhanney.saber.metainfo.xml');
+    final flatpakMetadata = File('flatpak/com.bruhmomentumtr.zaber.metainfo.xml');
     expect(flatpakMetadata.existsSync(), true);
     final flatpakMetadataContents = await flatpakMetadata.readAsString();
 
