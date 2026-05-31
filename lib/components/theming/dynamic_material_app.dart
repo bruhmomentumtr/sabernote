@@ -1,3 +1,6 @@
+/// 🤖 Modified with Claude Opus 4.6; Google Antigravity
+library;
+
 import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
@@ -39,10 +42,17 @@ class DynamicMaterialApp extends StatefulHookWidget {
 
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(value);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(
-        value ? SystemUiMode.immersive : SystemUiMode.edgeToEdge,
-      );
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      if (value) {
+        // Full screen: hide everything (status bar + nav bar).
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      } else {
+        // Normal mode: hide only the navigation bar, keep status bar.
+        SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: [SystemUiOverlay.top],
+        );
+      }
     }
   }
 
@@ -61,6 +71,14 @@ class DynamicMaterialAppState extends State<DynamicMaterialApp>
   void initState() {
     windowManager.addListener(this);
     SystemChrome.setSystemUIChangeCallback(_onFullscreenChange);
+
+    // On Android/iOS, hide the navigation bar immediately on startup.
+    if (Platform.isAndroid || Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top],
+      );
+    }
 
     super.initState();
   }

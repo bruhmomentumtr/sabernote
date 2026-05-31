@@ -85,7 +85,12 @@ jobs:
       - name: Patch Rust versions in cargokit
         run: bash patches/post/patch_rust_versions.sh
 
-      - run: flutter build apk --release
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+            --obfuscate \
+            --split-debug-info=build/debug-info \
+            --tree-shake-icons
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -123,7 +128,8 @@ jobs:
           cache: true
 
       - run: flutter pub get
-      - run: flutter build windows --release
+      - name: Build Windows
+        run: flutter build windows --release --tree-shake-icons
 
       - name: Create ZIP
         shell: pwsh
@@ -185,7 +191,12 @@ jobs:
       - name: Patch Rust versions in cargokit
         run: bash patches/post/patch_rust_versions.sh
 
-      - run: flutter build linux --release
+      - name: Build Linux
+        run: |
+          flutter build linux --release \
+            --obfuscate \
+            --split-debug-info=build/debug-info \
+            --tree-shake-icons
 
       - name: Create tar.gz
         run: |
