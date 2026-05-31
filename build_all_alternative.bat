@@ -63,7 +63,7 @@ REM --------------------------------------------------
 REM 4. Build Windows
 REM --------------------------------------------------
 echo [4/6] Building Windows (Release)...
-call flutter build windows --release --no-pub --tree-shake-icons
+call flutter build windows --release --tree-shake-icons
 if errorlevel 1 (
     echo Windows build FAILED!
     goto cleanup_failed
@@ -75,13 +75,13 @@ REM --------------------------------------------------
 REM 5. Build Android
 REM --------------------------------------------------
 echo [5/6] Building Android (Original Signed Release APK)...
-call flutter build apk --release --no-pub --obfuscate --split-debug-info=build/debug-info --tree-shake-icons
+call flutter build apk --release --obfuscate --split-debug-info=build/debug-info --tree-shake-icons
 if errorlevel 1 (
     echo.
     echo   Android build failed, retrying after clean...
     call flutter clean
     call flutter pub get
-    call flutter build apk --release --no-pub --obfuscate --split-debug-info=build/debug-info --tree-shake-icons
+    call flutter build apk --release --obfuscate --split-debug-info=build/debug-info --tree-shake-icons
     if errorlevel 1 (
         echo Android signed release build FAILED!
         goto cleanup_failed
