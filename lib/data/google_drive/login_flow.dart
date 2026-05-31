@@ -1,5 +1,6 @@
 /// 🤖 Generated wholely or partially with GPT-5 Codex; OpenAI
 /// 🤖 Modified with Claude Opus 4.6; Google Antigravity
+/// 🤖 Modified with Gemini 3.5 Flash; Google Antigravity
 library;
 
 import 'dart:async';
@@ -49,7 +50,7 @@ class GoogleDriveLoginFlow {
     'openid',
     'email',
     'profile',
-    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.file',
   ];
 
   final String clientId;
