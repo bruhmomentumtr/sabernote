@@ -1,4 +1,5 @@
 /// 🤖 Modified with Claude Opus 4.6; Google Antigravity
+/// 🤖 Modified with Gemini 3.5 Flash; Google Antigravity
 library;
 
 import 'dart:math';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:saber/components/settings/app_info.dart';
+import 'package:saber/data/google_drive/constants.dart';
 import 'package:saber/data/google_drive/google_drive_client.dart';
 import 'package:saber/data/google_drive/login_flow.dart';
 import 'package:saber/data/prefs.dart';
@@ -81,9 +83,14 @@ class _NcLoginStepState extends State<NcLoginStep> {
     final isLoading = useState(false);
     final errorMessage = useState('');
 
+    // Toggle state for advanced custom credentials
+    final showAdvanced = useState(defaultGoogleDriveClientId.isEmpty);
+
     final hasClientId = useListenableSelector(
       clientIdController,
-      () => clientIdController.text.trim().isNotEmpty,
+      () => showAdvanced.value
+          ? clientIdController.text.trim().isNotEmpty
+          : defaultGoogleDriveClientId.isNotEmpty,
     );
 
     final colorScheme = ColorScheme.of(context);
@@ -109,7 +116,9 @@ class _NcLoginStepState extends State<NcLoginStep> {
         Text('Google Drive', style: textTheme.headlineSmall),
         const SizedBox(height: 4),
         Text(
-          'Enter your Google Drive API credentials, then continue in the Google sign-in page.',
+          defaultGoogleDriveClientId.isNotEmpty && !showAdvanced.value
+              ? 'Click the button below to sign in to your Google Drive account.'
+              : 'Enter your Google Drive API credentials, then continue in the Google sign-in page.',
         ),
         const SizedBox(height: 8),
         Text.rich(
@@ -125,25 +134,43 @@ class _NcLoginStepState extends State<NcLoginStep> {
           ),
         ),
         const SizedBox(height: 24),
-        TextField(
-          controller: clientIdController,
-          autocorrect: false,
-          autofillHints: const [AutofillHints.username],
-          decoration: const InputDecoration(
-            labelText: 'Google OAuth Client ID',
-            hintText: '1234567890-xxxxx.apps.googleusercontent.com',
+        if (defaultGoogleDriveClientId.isNotEmpty) ...[
+          TextButton.icon(
+            onPressed: () => showAdvanced.value = !showAdvanced.value,
+            icon: Icon(
+              showAdvanced.value
+                  ? Icons.keyboard_arrow_up
+                  : Icons.keyboard_arrow_down,
+            ),
+            label: Text(
+              showAdvanced.value
+                  ? 'Use Default Credentials'
+                  : 'Advanced / Use Custom Credentials',
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: clientSecretController,
-          autocorrect: false,
-          autofillHints: const [AutofillHints.password],
-          decoration: const InputDecoration(
-            labelText: 'Google OAuth Client Secret (optional)',
+          const SizedBox(height: 8),
+        ],
+        if (showAdvanced.value) ...[
+          TextField(
+            controller: clientIdController,
+            autocorrect: false,
+            autofillHints: const [AutofillHints.username],
+            decoration: const InputDecoration(
+              labelText: 'Google OAuth Client ID',
+              hintText: '1234567890-xxxxx.apps.googleusercontent.com',
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
+          const SizedBox(height: 12),
+          TextField(
+            controller: clientSecretController,
+            autocorrect: false,
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(
+              labelText: 'Google OAuth Client Secret (optional)',
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
         if (errorMessage.value.isNotEmpty)
           Text(errorMessage.value, style: TextStyle(color: colorScheme.error)),
         const SizedBox(height: 6),
@@ -151,8 +178,12 @@ class _NcLoginStepState extends State<NcLoginStep> {
           onPressed: (!hasClientId || isLoading.value)
               ? null
               : () => _startGoogleLogin(
-                  clientId: clientIdController.text,
-                  clientSecret: clientSecretController.text,
+                  clientId: showAdvanced.value
+                      ? clientIdController.text
+                      : defaultGoogleDriveClientId,
+                  clientSecret: showAdvanced.value
+                      ? clientSecretController.text
+                      : defaultGoogleDriveClientSecret,
                   isLoading: isLoading,
                   errorMessage: errorMessage,
                 ),
