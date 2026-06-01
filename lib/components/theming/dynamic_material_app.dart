@@ -1,4 +1,4 @@
-/// 🤖 Modified with Claude Opus 4.6; Google Antigravity
+/// 🤖 Modified with Claude Opus 4.6, Gemini 3.5 Flash; Google Antigravity
 library;
 
 import 'dart:io';
@@ -44,14 +44,11 @@ class DynamicMaterialApp extends StatefulHookWidget {
       windowManager.setFullScreen(value);
     } else if (Platform.isAndroid || Platform.isIOS) {
       if (value) {
-        // Full screen: hide everything (status bar + nav bar).
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+        // Full screen: hide status bar and navigation bar (sticky immersive).
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       } else {
-        // Normal mode: hide only the navigation bar, keep status bar.
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: [SystemUiOverlay.top],
-        );
+        // Normal mode: keep both status bar and navigation bar visible (edge-to-edge).
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       }
     }
   }
@@ -72,12 +69,9 @@ class DynamicMaterialAppState extends State<DynamicMaterialApp>
     windowManager.addListener(this);
     SystemChrome.setSystemUIChangeCallback(_onFullscreenChange);
 
-    // On Android/iOS, hide the navigation bar immediately on startup.
+    // On Android/iOS, configure edge-to-edge UI mode by default.
     if (Platform.isAndroid || Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top],
-      );
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
 
     super.initState();
