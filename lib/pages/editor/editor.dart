@@ -1,6 +1,8 @@
+// 🤖 Modified with Claude Sonnet 4.6; Google Antigravity
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 
 import 'package:collapsible/collapsible.dart';
 import 'package:file_picker/file_picker.dart';
@@ -9,6 +11,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:flutter_quill/flutter_quill.dart' as flutter_quill;
 import 'package:keybinder/keybinder.dart';
 import 'package:logging/logging.dart';
@@ -185,11 +188,19 @@ class EditorState extends State<Editor> {
   void initState() {
     DynamicMaterialApp.addFullscreenListener(_setState);
 
+    // On mobile, always hide the system navigation bar in the editor
+    // so it doesn't interfere with drawing. The bar reappears temporarily
+    // when the user swipes up from the bottom (immersiveSticky).
+    if (Platform.isAndroid || Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+
     _initAsync();
     _assignKeybindings();
 
     super.initState();
   }
+
 
   void _initAsync() async {
     final filePath = await widget.initialPath;
@@ -2061,6 +2072,11 @@ class EditorState extends State<Editor> {
 
     DynamicMaterialApp.removeFullscreenListener(_setState);
 
+    // Restore the system navigation bar when leaving the editor.
+    if (Platform.isAndroid || Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+
     _delayedSaveTimer?.cancel();
     _watchServerTimer?.cancel();
     _lastSeenPointerCountTimer?.cancel();
@@ -2076,6 +2092,7 @@ class EditorState extends State<Editor> {
 
     super.dispose();
   }
+
 
   Future<void> _cleanUpAsync() async {
     try {
