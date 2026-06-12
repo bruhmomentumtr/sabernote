@@ -1596,19 +1596,25 @@ class EditorState extends State<Editor> {
 
     final Widget body;
     if (isToolbarVertical) {
-      body = Row(
-        textDirection: stows.editorToolbarAlignment.value == AxisDirection.left
-            ? .ltr
-            : .rtl,
+      // Use a Stack so the toolbar overlays the canvas without affecting its
+      // size. This prevents the canvas from shrinking (and appearing to zoom)
+      // when the colour/pen options panel expands horizontally.
+      final isLeft =
+          stows.editorToolbarAlignment.value == AxisDirection.left;
+      body = Stack(
         children: [
-          toolbar,
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(child: canvas),
-                readonlyBanner,
-              ],
-            ),
+          Column(
+            children: [
+              Expanded(child: canvas),
+              readonlyBanner,
+            ],
+          ),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: isLeft ? 0 : null,
+            right: isLeft ? null : 0,
+            child: toolbar,
           ),
         ],
       );
