@@ -1,5 +1,6 @@
 # 🤖 Generated wholely or partially with Gemini; Google Antigravity
 # 🤖 Modified with Claude Opus 4.6; Google Antigravity (rust/cargokit fix)
+# 🤖 Modified with Claude Sonnet 4.6; Google Antigravity (CMake cache fix)
 name: Build All Platforms
 
 on:
@@ -128,6 +129,12 @@ jobs:
           cache: true
 
       - run: flutter pub get
+
+      - name: Clear CMake cache (avoids VS generator mismatch when runner updates)
+        shell: bash
+        run: |
+          rm -rf build/windows/x64/CMakeCache.txt build/windows/x64/CMakeFiles
+
       - name: Build Windows
         run: flutter build windows --release --tree-shake-icons
 

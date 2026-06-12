@@ -1,3 +1,4 @@
+# 🤖 Modified with Claude Sonnet 4.6; Google Antigravity
 name: "[Legacy] Build for Windows"
 
 on:
@@ -19,7 +20,6 @@ jobs:
         with:
           path: |
             .dart_tool/
-            build/
             linux/flutter/ephemeral/
             macos/Flutter/ephemeral/
             windows/flutter/ephemeral/
@@ -41,6 +41,11 @@ jobs:
       - run: flutter pub get
       - run: ./patches/post/patch_rust_versions.sh
       - run: ./patches/post/remove_wasm_libs.sh
+
+      - name: Clear CMake cache (avoids VS generator mismatch when runner updates)
+        shell: bash
+        run: |
+          rm -rf build/windows/x64/CMakeCache.txt build/windows/x64/CMakeFiles
 
       - name: Build Windows
         shell: bash
