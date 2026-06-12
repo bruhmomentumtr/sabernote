@@ -1,3 +1,4 @@
+// 🤖 Modified with Claude Sonnet 4.6; Google Antigravity
 import 'dart:convert';
 import 'dart:io';
 
@@ -51,16 +52,9 @@ abstract class UpdateManager {
   }
 
   static Future<UpdateStatus> _checkForUpdate() async {
-    const int currentVersion = version.buildNumber;
-
-    try {
-      newestVersion = await getNewestVersion();
-    } catch (e, st) {
-      log.severe('Failed to check for update: $e', e, st);
-      return .upToDate;
-    }
-
-    return getUpdateStatus(currentVersion, newestVersion ?? 0);
+    // Update checking is disabled for this fork.
+    // The upstream saber-notes/saber repo is not relevant here.
+    return .upToDate;
   }
 
   /// Returns the version number hosted on GitHub (at [versionUrl]).
