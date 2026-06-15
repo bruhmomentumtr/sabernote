@@ -1,15 +1,7 @@
-// 🤖 Modified with Claude Sonnet 4.6; Google Antigravity
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:background_downloader/background_downloader.dart';
+// 🤖 Modified with Claude Sonnet 4.6; Google Antigravity (disabled update checks for fork)
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:open_file/open_file.dart';
-import 'package:saber/components/settings/update_dialog.dart';
-import 'package:saber/data/prefs.dart';
 import 'package:saber/data/saber_version.dart';
 import 'package:saber/data/version.dart' as version;
 
@@ -27,28 +19,15 @@ abstract class UpdateManager {
   static final ValueNotifier<UpdateStatus> status = ValueNotifier(.upToDate);
   static int? newestVersion;
 
-  static var _hasShownUpdateDialog = false;
+  /// Update checking is fully disabled for this fork.
+  /// All calls are stubbed out so no network requests are made
+  /// and no update dialog is ever shown.
   static Future<void> showUpdateDialog(
     BuildContext context, {
     bool userTriggered = false,
   }) async {
-    if (!userTriggered) {
-      if (status.value == .upToDate) {
-        // check for updates if not already done
-        await stows.shouldCheckForUpdates.waitUntilRead();
-        if (!stows.shouldCheckForUpdates.value) return;
-        status.value = await _checkForUpdate();
-      }
-      if (status.value != .updateRecommended) return; // no update available
-      if (_hasShownUpdateDialog) return; // already shown
-    }
-
-    if (!context.mounted) return;
-    _hasShownUpdateDialog = true;
-    return await showDialog(
-      context: context,
-      builder: (context) => const UpdateDialog(),
-    );
+    // Disabled: this fork does not use the upstream saber-notes/saber releases.
+    return;
   }
 
   static Future<UpdateStatus> _checkForUpdate() async {
@@ -128,36 +107,12 @@ abstract class UpdateManager {
     return .updateRecommended;
   }
 
+  /// Disabled for this fork — always returns null.
   static Future<String?> getLatestDownloadUrl([
     @visibleForTesting String? apiResponse,
     @visibleForTesting TargetPlatform? platform,
-  ]) async {
-    platform ??= defaultTargetPlatform;
-
-    if (!UpdateManager.platformFileRegex.containsKey(platform)) return null;
-
-    if (apiResponse == null) {
-      final http.Response response;
-      try {
-        response = await http.get(apiUrl);
-      } catch (e) {
-        throw const SocketException('Failed to fetch latest release');
-      }
-      if (response.statusCode >= 400)
-        throw SocketException(
-          'Failed to fetch latest release, HTTP status code ${response.statusCode}',
-        );
-      apiResponse = response.body;
-    }
-
-    final Map<String, dynamic> json = jsonDecode(apiResponse);
-    final RegExp platformFileRegex = UpdateManager.platformFileRegex[platform]!;
-    final Map<String, dynamic>? asset = (json['assets'] as List).firstWhere(
-      (asset) => platformFileRegex.hasMatch(asset['name']),
-      orElse: () => null,
-    );
-    return asset?['browser_download_url'];
-  }
+  ]) async =>
+      null;
 
   static final Map<TargetPlatform, RegExp> platformFileRegex = {
     // Normal platforms get their updates from app stores, so
@@ -199,30 +154,12 @@ abstract class UpdateManager {
     }
   }
 
+  /// Disabled for this fork — always returns null.
   static Future<String?> getChangelog({
     String localeCode = 'en-US',
     @visibleForTesting int? newestVersion,
-  }) async {
-    newestVersion ??= UpdateManager.newestVersion;
-    assert(newestVersion != null);
-
-    final url =
-        'https://raw.githubusercontent.com/saber-notes/saber/main/'
-        'metadata/$localeCode/changelogs/$newestVersion.txt';
-    log.info('Downloading changelog from $url');
-
-    final http.Response response;
-    try {
-      response = await http.get(Uri.parse(url));
-    } catch (e, st) {
-      log.severe('Failed to download changelog: $e', e, st);
-      return null;
-    }
-    if (response.statusCode >= 400) return null;
-
-    if (response.body.isEmpty) return null;
-    return response.body;
-  }
+  }) async =>
+      null;
 }
 
 enum UpdateStatus {
