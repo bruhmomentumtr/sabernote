@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
 import 'package:saber/data/extensions/quota_extension.dart';
 import 'package:saber/data/google_drive/readable_bytes.dart';
+import 'package:saber/data/google_drive/saber_syncer.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,6 +34,9 @@ class DoneLoginStep extends StatelessWidget {
     stows.lastStorageQuota.value = null;
     stows.key.value = '';
     stows.iv.value = '';
+    // Discard the cached client so stale folder IDs are never reused
+    // on the next login.
+    SaberSyncInterface.invalidateClient();
     recheckCurrentStep();
   }
 

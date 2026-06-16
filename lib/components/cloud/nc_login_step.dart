@@ -12,6 +12,7 @@ import 'package:saber/components/settings/app_info.dart';
 import 'package:saber/data/google_drive/constants.dart';
 import 'package:saber/data/google_drive/google_drive_client.dart';
 import 'package:saber/data/google_drive/login_flow.dart';
+import 'package:saber/data/google_drive/saber_syncer.dart';
 import 'package:saber/data/prefs.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -58,6 +59,10 @@ class _NcLoginStepState extends State<NcLoginStep> {
       stows.encPassword.value = '';
       stows.key.value = '';
       stows.iv.value = '';
+
+      // Discard the old GoogleDriveClient so the next sync picks up fresh
+      // credentials and re-resolves the correct Drive folder for this account.
+      SaberSyncInterface.invalidateClient();
 
       final client = GoogleDriveClient.withSavedDetails();
       stows.pfp.value = await client?.getProfilePictureBytes(

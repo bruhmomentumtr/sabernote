@@ -99,9 +99,21 @@ class GoogleDriveClient {
 
   Future<String> getOrCreateAppFolderId() async {
     if (_folderId != null) return _folderId!;
+
     if (stows.googleDriveFolderId.value.isNotEmpty) {
-      _folderId = stows.googleDriveFolderId.value;
-      return _folderId!;
+      final candidateId = stows.googleDriveFolderId.value;
+      // Verify the persisted folder ID still exists and belongs to this account.
+      final verified = await _verifyFolderExists(candidateId);
+      if (verified) {
+        _folderId = candidateId;
+        return _folderId!;
+      }
+      // ID is stale — clear it and fall through to a fresh Drive search.
+      log.warning(
+        'Cached Drive folder ID "$candidateId" is no longer accessible. '
+        'Searching for an existing folder instead.',
+      );
+      stows.googleDriveFolderId.value = '';
     }
 
     final escapedName = _escapeForDriveQuery(appRootDirectoryPrefix);
@@ -143,6 +155,22 @@ class GoogleDriveClient {
 
     stows.googleDriveFolderId.value = _folderId!;
     return _folderId!;
+  }
+
+  /// Returns true if [folderId] exists in Drive and is accessible.
+  Future<bool> _verifyFolderExists(String folderId) async {
+    try {
+      final json = await _requestJson(
+        method: 'GET',
+        uri: Uri.https('www.googleapis.com', '/drive/v3/files/$folderId', {
+          'fields': 'id,trashed',
+        }),
+      );
+      final trashed = json['trashed'] == true;
+      return !trashed;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<List<GoogleDriveRemoteFile>> listRemoteFiles() async {

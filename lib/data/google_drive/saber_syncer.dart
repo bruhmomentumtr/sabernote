@@ -314,6 +314,17 @@ class SaberSyncInterface
     return _client;
   }
 
+  /// Discards the cached [GoogleDriveClient] and all path/file caches.
+  ///
+  /// Must be called whenever the user logs in or out so that stale folder IDs
+  /// and encrypted-path mappings from the previous session are not reused.
+  static void invalidateClient() {
+    _client = null;
+    remoteFiles = {};
+    _encryptMap.clear();
+    _decryptMap.clear();
+  }
+
   static var remoteFiles = <GoogleDriveRemoteFile>{};
 
   static final _encryptMap = <String, String>{};
